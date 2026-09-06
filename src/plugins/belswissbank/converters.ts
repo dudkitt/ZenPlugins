@@ -233,8 +233,12 @@ export function * convertTransactions (apiTransactions: unknown[]): Generator<Tr
   for (const transaction of apiTransactions) {
     try {
       const summa = _.get(transaction, 'summa') as number
+      const otkaz = _.get(transaction, 'transactionType') as string
       if (summa === 0) {
         // e.g. preauthorization
+        continue
+      }
+      if (otkaz?.includes('OTKAZ')) {
         continue
       }
       const isEnrollment = _.get(transaction, 'isEnrollment') as boolean
@@ -265,6 +269,16 @@ export function * convertTransactions (apiTransactions: unknown[]): Generator<Tr
         }
       }
 
+      const transactionMerchant = _.get(transaction, 'target')
+      const isValidMerchant = typeof transactionMerchant === 'string' && transactionMerchant.trim() !== ''
+      const merchant = isValidMerchant
+        ? {
+            fullTitle: transactionMerchant,
+            mcc: null,
+            location: null
+          }
+        : null
+
       yield {
         hold: false,
         date: parseDate(_.get(transaction, 'paymentDate')),
@@ -277,11 +291,7 @@ export function * convertTransactions (apiTransactions: unknown[]): Generator<Tr
             invoice
           }
         ],
-        merchant: {
-          fullTitle: _.get(transaction, 'target'),
-          mcc: null,
-          location: null
-        },
+        merchant,
         comment: _.get(transaction, 'commentText')
       }
     } catch (e) {

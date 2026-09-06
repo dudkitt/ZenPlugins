@@ -75,3 +75,132 @@ KZ000000000000000123
     ]
   })
 })
+
+it('skips deposit prolongation service line without amount', () => {
+  const statementUid = 'deposit-statement-with-service-line'
+  const statement = `
+ВЫПИСКА
+По Депозиту за период с 05.03.26 по 05.04.26
+5 апреля 2026
+Номер договора: D0000-001
+Номер счета:
+KZ000000000000000124
+На Депозите 05.04.26:165 758,41 ₸Валюта счета:      тенге
+Эффективная ставкаДата открытия:
+10.03.2023
+вознаграждения:15%
+Дата пролонгации:
+17.03.2027
+ДатаСуммаОперацияДеталиНа Депозите
+15.03.26+763,37 ₸Вознаграждение242 337,61 ₸
+15.03.26РазноеПродление депозита242 337,61 ₸
+16.03.26-10 000,00 ₸Перевод232 337,61 ₸
+Проценты по Kaspi
+Депозиту
+Перевод на карту на
+kaspi.kz
+ДатаСуммаОперацияДеталиНа Депозите
+16.03.26+10 000,00 ₸ПополнениеС Kaspi Gold через kaspi.kz242 337,61 ₸
+`
+
+  expect(parseSinglePdfString(statement, statementUid)).toEqual({
+    account: {
+      balance: 165758.41,
+      id: 'KZ000000000000000124',
+      instrument: 'KZT',
+      title: 'Депозит D0000-001',
+      date: '2026-04-05T00:00:00.000',
+      capitalization: '15%',
+      endDate: '2027-03-17T00:00:00.000',
+      startBalance: 0,
+      startDate: '2023-03-10T00:00:00.000',
+      type: 'deposit'
+    },
+    transactions: [
+      {
+        hold: false,
+        date: '2026-03-15T00:00:00.000',
+        originalAmount: null,
+        amount: '+ 763,37',
+        description: 'Вознаграждение',
+        statementUid,
+        originString: '15.03.26+763,37 ₸Вознаграждение242 337,61 ₸'
+      },
+      {
+        hold: false,
+        date: '2026-03-16T00:00:00.000',
+        originalAmount: null,
+        amount: '- 10 000,00',
+        description: 'Перевод',
+        statementUid,
+        originString: '16.03.26-10 000,00 ₸Перевод232 337,61 ₸'
+      },
+      {
+        hold: false,
+        date: '2026-03-16T00:00:00.000',
+        originalAmount: null,
+        amount: '+ 10 000,00',
+        description: 'Пополнение С Kaspi Gold через kaspi.kz',
+        statementUid,
+        originString: '16.03.26+10 000,00 ₸ПополнениеС Kaspi Gold через kaspi.kz242 337,61 ₸'
+      }
+    ]
+  })
+})
+
+it('parses deposit balance from summary when title balance is empty', () => {
+  const statementUid = 'deposit-statement-with-summary-balance'
+  const statement = `
+ВЫПИСКА
+По Депозиту за период с 01.07.26 по 01.07.26
+1 июля 2026
+Номер договора: D0000-002
+Номер счета:
+KZ000000000000000125
+На Депозите 01.07.26:
+Валюта счета: тенге
+Эффективная ставка
+Дата открытия: 18.04.2025
+вознаграждения: 20%
+Дата пролонгации: 12.07.2026
+____________________________________________________________________________________________
+Краткое содержание операций по депозиту:
+На Депозите 01.07.26 9 448 324,88 ₸
+Пополнения 0,00 ₸
+Вознаграждения +143 899,12 ₸
+Снятия 0,00 ₸
+Переводы 0,00 ₸
+Платежи 0,00 ₸
+Разное 0,00 ₸
+На Депозите 01.07.26 9 592 224,00 ₸
+Дата Сумма Операция Детали На Депозите
+01.07.26 +143 899,12 ₸ Вознаграждение Проценты по Kaspi Депозиту 9 592 224,00 ₸
+9 592 224,00 ₸
+`
+
+  expect(parseSinglePdfString(statement, statementUid)).toEqual({
+    account: {
+      balance: 9592224,
+      id: 'KZ000000000000000125',
+      instrument: 'KZT',
+      title: 'Депозит D0000-002',
+      date: '2026-07-01T00:00:00.000',
+      capitalization: '20%',
+      endDate: '2026-07-12T00:00:00.000',
+      startBalance: 0,
+      startDate: '2025-04-18T00:00:00.000',
+      type: 'deposit'
+    },
+    transactions: [
+      {
+        hold: false,
+        date: '2026-07-01T00:00:00.000',
+        originalAmount: null,
+        amount: '+ 143 899,12',
+        description: 'Вознаграждение Проценты по Kaspi Депозиту',
+        statementUid,
+        originString: '01.07.26 +143 899,12 ₸ Вознаграждение Проценты по Kaspi Депозиту 9 592 224,00 ₸'
+      }
+    ]
+  })
+})

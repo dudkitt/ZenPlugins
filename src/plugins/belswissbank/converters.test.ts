@@ -487,4 +487,129 @@ describe('convertTransactions', () => {
       }
     ])
   })
+
+  test('converts transaction with empty target (no merchant)', () => {
+    const apiTransactions = [
+      {
+        id: 104428613,
+        userId: 1000007,
+        cardId: 100007,
+        paymentDate: '23/05/2025 11:48:20',
+        last4namePayer: '7913, DMITRY SOKOLOV',
+        currCode: 'BYN',
+        target: null,
+        paymentTypeId: 10004715911,
+        status: 1,
+        paymentName: 'Polevoy.by',
+        paymentType: 'ERIP',
+        isEnrollment: false,
+        summa: 710,
+        balanceBefore: null,
+        balanceAfter: null,
+        currencyTypePayer: 'USD',
+        statusSignature: null,
+        cardRetailIdRecipient: null,
+        commentText: null,
+        favoriteId: null
+      },
+      {
+        id: 104428614,
+        userId: 1000007,
+        cardId: 100007,
+        paymentDate: '23/05/2025 11:48:20',
+        last4namePayer: '7913, DMITRY SOKOLOV',
+        currCode: 'BYN',
+        target: '',
+        paymentTypeId: 10004715911,
+        status: 1,
+        paymentName: 'Polevoy.by',
+        paymentType: 'ERIP',
+        isEnrollment: false,
+        summa: 710,
+        balanceBefore: null,
+        balanceAfter: null,
+        currencyTypePayer: 'USD',
+        statusSignature: null,
+        cardRetailIdRecipient: null,
+        commentText: null,
+        favoriteId: null
+      }
+    ]
+
+    const transactions = uut(apiTransactions)
+
+    expect(transactions).toEqual([
+      {
+        comment: null,
+        date: new Date('2025-05-23T11:48:20+0300'),
+        hold: false,
+        merchant: null,
+        movements: [
+          {
+            account: { id: '100007' },
+            fee: 0,
+            id: '104428613',
+            invoice: {
+              sum: -710,
+              instrument: 'BYN'
+            },
+            sum: null
+          }
+        ]
+      },
+      {
+        comment: null,
+        date: new Date('2025-05-23T11:48:20+0300'),
+        hold: false,
+        merchant: null,
+        movements: [
+          {
+            account: { id: '100007' },
+            fee: 0,
+            id: '104428614',
+            invoice: {
+              sum: -710,
+              instrument: 'BYN'
+            },
+            sum: null
+          }
+        ]
+      }
+    ])
+  })
+
+  test('skips transaction with transactionType otkaz', () => {
+    const apiTransactions = [
+      {
+        id: 135510240,
+        userId: 10083664,
+        cardId: 123456,
+        paymentDate: '10/04/2026 04:41:31',
+        last4namePayer: '1903, DZMITRY FAMIANOK',
+        currCode: 'USD',
+        target: 'FISHBRAIN',
+        paymentTypeId: null,
+        status: 51,
+        paymentName: 'Отказ',
+        paymentType: 'TRANSACTION',
+        isEnrollment: false,
+        summa: 79.99,
+        balanceBefore: null,
+        balanceAfter: null,
+        currencyTypePayer: 'USD',
+        statusSignature: 'Недостаточно средств',
+        cardRetailIdRecipient: null,
+        commentText: null,
+        favoriteId: null,
+        brandIcon: null,
+        brandName: null,
+        transactionType: 'OTKAZ51',
+        terminal: null
+      }
+    ]
+
+    const transactions = uut(apiTransactions)
+
+    expect(transactions).toEqual([])
+  })
 })

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen>
+    <EditTextPreference
+        key="startDate"
+        obligatory="true"
+        inputType="date"
+        title="מאיזה תאריך לטעון פעולות"
+        defaultValue="2018-01-01T00:00:00.000Z"
+        dialogTitle="מאיזה תאריך לטעון פעולות"
+        positiveButtonText="בסדר"
+        negativeButtonText="בטל"
+        summary="|startDate|{@s}"
+    />
+</PreferenceScreen>
